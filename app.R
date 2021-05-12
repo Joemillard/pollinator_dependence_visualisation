@@ -39,77 +39,105 @@ ui <- shinyUI(fluidPage(
             border-color: #FFFFFF;
             box-shadow: inset 0 0px 0px rgb(0 0 0 / 5%);
         }
-
         body, label, input, button, select { 
           font-family: "Arial";
         }')
     )),
-
+    
     # Application title
     titlePanel("Change in global pollination dependence vulnerability"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(id="sidebar",
-            selectInput("select_country", "Select country", choices = country_change$SOVEREIGNT),
-            plotOutput("country_change"),
-            ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           ggiraphOutput("maplot"),
-           sliderInput("year",
-                       "Year", min = 2015, 
-                       max = 2047, value = 2015, 
-                       animate = TRUE, sep = ""),
-        )
+    
+    # nav bar with two panels for global and country plots
+    navbarPage("Menu",
+               # Global tab
+               tabPanel("Global",
+                        sidebarLayout(
+                            sidebarPanel(id="sidebar"),
+                            # Show a plot of the generated distribution
+                            mainPanel(
+                                plotOutput("maplot"),
+                                sliderInput("year",
+                                            "Year", min = 2015, 
+                                            max = 2047, value = 2015, 
+                                            animate = TRUE, sep = ""),
+                            )
+                        )),
+               # specific country tab
+               tabPanel("Country",
+                        sidebarLayout(
+                            sidebarPanel(id="sidebar",
+                                         selectInput("select_country", "Select country", choices = country_change$SOVEREIGNT),
+                                         plotOutput("select_map")),
+                                         
+                            mainPanel(
+                                plotOutput("country_change"),
+                            )
+                        )
+               )
     )
-    )
-)
+))
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-        output$maplot<- renderggiraph({
     
-            # plot the ggplot map for climate anomaly
-            global_map <- ggplot() +
-                geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = group, data_id = group), data = map_fort, fill = "grey", alpha = 0.3) +
-                geom_tile(aes(x = x, y = y, fill = poll_vulnerability), data = map_data[[as.character(input$year)]]) +
-                scale_fill_viridis("Vulnerability-weighted \npollination dependence",
-                                   na.value = "transparent", option = "plasma", direction = -1,
-                                   limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
-                coord_equal() +
-                guides(fill = guide_colourbar(ticks = FALSE)) +
-                theme(panel.background = element_blank(),
-                      panel.bord = element_blank(),
-                      panel.grid = element_blank(), 
-                      axis.text = element_blank(),
-                      axis.ticks = element_blank(), 
-                      axis.title = element_blank(),
-                      legend.position = "right")
-           
-             ggiraph(code = print(global_map))
-                
-        }) %>% bindCache(input$year)
+    output$select_map <- renderggiraph({
         
-        # plot of total production vulnerability for each country
-        output$country_change <-  renderPlot({
-            country_change %>%
-                filter(SOVEREIGNT %in% input$select_country) %>% 
-                ggplot() +
-                geom_ribbon(aes(x = year, ymin = lower_conf, ymax = upp_conf), fill = "white", colour = "grey", alpha = 0.2, linetype = "dashed") +
-                geom_line(aes(x = year, y = total, colour = total), size = 0.8) +
-                scale_colour_viridis("", na.value = "transparent", option = "plasma", direction = -1,
-                                     limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
-                scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
-                scale_x_continuous("", breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
-                ylab("Vulnerability-weighted \npollination dependence") +
-                theme_bw() +
-                guides(guide_colourbar(ticks = FALSE)) +
-                theme(panel.grid = element_blank(),
-                      legend.position = "none", strip.text = element_text(size = 10.5))
-        })
+        # plot the ggplot map for climate anomaly
+        global_map <- ggplot() +
+            geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = group, data_id = group), data = map_fort, fill = "grey") +
+            coord_equal() +
+            theme(panel.background = element_blank(),
+                  panel.bord = element_blank(),
+                  panel.grid = element_blank(), 
+                  axis.text = element_blank(),
+                  axis.ticks = element_blank(), 
+                  axis.title = element_blank(),
+                  legend.position = "right")
+        
+        ggiraph(code = print(global_map))
+        
+    })
+    
+    output$maplot<- renderPlot({
+        
+        # plot the ggplot map for climate anomaly
+        ggplot() +
+            geom_polygon(aes(x = long, y = lat, group = group), data = map_fort, fill = "grey", alpha = 0.3) +
+            geom_tile(aes(x = x, y = y, fill = poll_vulnerability), data = map_data[[as.character(input$year)]]) +
+            scale_fill_viridis("Vulnerability-weighted \npollination dependence",
+                               na.value = "transparent", option = "plasma", direction = -1,
+                               limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
+            coord_equal() +
+            guides(fill = guide_colourbar(ticks = FALSE)) +
+            theme(panel.background = element_blank(),
+                  panel.bord = element_blank(),
+                  panel.grid = element_blank(), 
+                  axis.text = element_blank(),
+                  axis.ticks = element_blank(), 
+                  axis.title = element_blank(),
+                  legend.position = "right")
+        
+    }) %>% bindCache(input$year)
+    
+    
+    # plot of total production vulnerability for each country
+    output$country_change <-  renderPlot({
+        country_change %>%
+            filter(SOVEREIGNT %in% input$select_country) %>% 
+            ggplot() +
+            geom_ribbon(aes(x = year, ymin = lower_conf, ymax = upp_conf), fill = "white", colour = "grey", alpha = 0.2, linetype = "dashed") +
+            geom_line(aes(x = year, y = total, colour = total), size = 0.8) +
+            scale_colour_viridis("", na.value = "transparent", option = "plasma", direction = -1,
+                                 limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
+            scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
+            scale_x_continuous("", breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
+            ylab("Vulnerability-weighted \npollination dependence") +
+            theme_bw() +
+            guides(guide_colourbar(ticks = FALSE)) +
+            theme(panel.grid = element_blank(),
+                  legend.position = "none", strip.text = element_text(size = 10.5))
+    })
 }
 
 # Run the application 
