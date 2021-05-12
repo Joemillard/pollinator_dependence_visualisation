@@ -8,6 +8,11 @@ library(viridis)
 # read in the pollination dependence data
 map_data <- readRDS("data/global_change_pollination_dependence.rds")
 
+# read in the grey background basemap
+map_fort <- readRDS("data/plot_base_map.rds")
+
+# read in the change in index data for each country
+
 # selection of years and empty year list
 years <- 2048:2050
 years_list <- c()
@@ -21,8 +26,6 @@ for(i in 1:33){
 # assign the years to each name of the list
 names(map_data) <- years_list
 
-# read in the grey background basemap
-map_fort <- readRDS("data/plot_base_map.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
