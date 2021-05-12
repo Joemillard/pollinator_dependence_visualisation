@@ -36,6 +36,8 @@ ui <- shinyUI(fluidPage(
         HTML('
          #sidebar {
             background-color: #FFFFFF;
+            border-color: #FFFFFF;
+            box-shadow: inset 0 0px 0px rgb(0 0 0 / 5%);
         }
 
         body, label, input, button, select { 
@@ -60,7 +62,6 @@ ui <- shinyUI(fluidPage(
                        "Year", min = 2015, 
                        max = 2047, value = 2015, 
                        animate = FALSE, sep = ""),
-           actionButton("update_map", "Update map")
         )
     )
     )
