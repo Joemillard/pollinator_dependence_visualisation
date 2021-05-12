@@ -4,6 +4,7 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 library(viridis)
+library(ggiraph)
 
 # read in the pollination dependence data
 map_data <- readRDS("data/global_change_pollination_dependence.rds")
@@ -28,7 +29,6 @@ for(i in 1:33){
 
 # assign the years to each name of the list
 names(map_data) <- years_list
-
 
 # Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
@@ -57,7 +57,7 @@ ui <- shinyUI(fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("maplot"),
+           ggiraphOutput("maplot"),
            sliderInput("year",
                        "Year", min = 2015, 
                        max = 2047, value = 2015, 
@@ -70,11 +70,11 @@ ui <- shinyUI(fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
 
-        output$maplot<- renderPlot({
+        output$maplot<- renderggiraph({
     
             # plot the ggplot map for climate anomaly
-            ggplot() +
-                geom_polygon(aes(x = long, y = lat, group = group), data = map_fort, fill = "grey", alpha = 0.3) +
+            global_map <- ggplot() +
+                geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = group, data_id = group), data = map_fort, fill = "grey", alpha = 0.3) +
                 geom_tile(aes(x = x, y = y, fill = poll_vulnerability), data = map_data[[as.character(input$year)]]) +
                 scale_fill_viridis("Vulnerability-weighted \npollination dependence",
                                    na.value = "transparent", option = "plasma", direction = -1,
@@ -88,9 +88,10 @@ server <- function(input, output) {
                       axis.ticks = element_blank(), 
                       axis.title = element_blank(),
                       legend.position = "right")
+           
+             ggiraph(code = print(global_map))
                 
         }) %>% bindCache(input$year)
-        
         
         # plot of total production vulnerability for each country
         output$country_change <-  renderPlot({
