@@ -57,13 +57,13 @@ ui <- shinyUI(fluidPage(
                tabPanel("Global",
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
+                                         sliderInput("year",
+                                                     "Year", min = 2016, 
+                                                     max = 2047, value = 2016, 
+                                                     animate = TRUE, sep = ""),
                                          plotOutput("production_change")),
                             mainPanel(
-                                plotOutput("maplot"),
-                                sliderInput("year",
-                                            "Year", min = 2016, 
-                                            max = 2047, value = 2016, 
-                                            animate = TRUE, sep = ""),
+                                plotOutput("maplot")
                             )
                         )),
                # specific country tab
