@@ -66,7 +66,6 @@ ui <- shinyUI(fluidPage(
                tabPanel("Country",
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
-                                         selectInput("select_country", "Select country", choices = country_change$SOVEREIGNT),
                                          ggiraphOutput("select_map")),
                                          
                             mainPanel(
@@ -85,6 +84,7 @@ server <- function(input, output) {
         
         # plot the ggplot map for climate anomaly
         global_map <- ggplot() +
+            ggtitle("Select country") +
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = group, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
             theme(panel.background = element_blank(),
@@ -95,7 +95,7 @@ server <- function(input, output) {
                   axis.title = element_blank(),
                   legend.position = "right")
         
-        ggiraph(code = print(global_map))
+        ggiraph(code = print(global_map), selection_type = "single")
         
     })
     
@@ -124,7 +124,7 @@ server <- function(input, output) {
     # plot of total production vulnerability for each country
     output$country_change <-  renderPlot({
         country_change %>%
-            filter(SOVEREIGNT %in% input$select_country) %>% 
+            filter(SOVEREIGNT %in% gsub("\\.\\d+", "", input$select_map_selected)) %>% 
             ggplot() +
             geom_ribbon(aes(x = year, ymin = lower_conf, ymax = upp_conf), fill = "white", colour = "grey", alpha = 0.2, linetype = "dashed") +
             geom_line(aes(x = year, y = total, colour = total), size = 0.8) +
