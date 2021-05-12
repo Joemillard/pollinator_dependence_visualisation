@@ -12,6 +12,9 @@ map_data <- readRDS("data/global_change_pollination_dependence.rds")
 map_fort <- readRDS("data/plot_base_map.rds")
 
 # read in the change in index data for each country
+country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
+    filter(!is.na(SOVEREIGNT)) %>%
+    filter(!is.na(total))
 
 # selection of years and empty year list
 years <- 2048:2050
@@ -28,14 +31,26 @@ names(map_data) <- years_list
 
 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+ui <- shinyUI(fluidPage(
+    tags$head(tags$style(
+        HTML('
+         #sidebar {
+            background-color: #FFFFFF;
+        }
+
+        body, label, input, button, select { 
+          font-family: "Arial";
+        }')
+    )),
 
     # Application title
     titlePanel("Change in global pollination dependence vulnerability"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
-        sidebarPanel(
+        sidebarPanel(id="sidebar",
+            selectInput("select_country", "Select country", choices = country_change$SOVEREIGNT),
+            plotOutput("country_change"),
             ),
 
         # Show a plot of the generated distribution
@@ -47,6 +62,7 @@ ui <- fluidPage(
                        animate = FALSE, sep = ""),
            actionButton("update_map", "Update map")
         )
+    )
     )
 )
 
@@ -73,6 +89,26 @@ server <- function(input, output) {
                       legend.position = "right")
                 
         }) %>% bindCache(input$year)
+        
+        
+        # plot of total production vulnerability for each country
+        output$country_change <-  renderPlot({
+            country_change %>%
+                filter(SOVEREIGNT %in% input$select_country) %>% 
+                ggplot() +
+                geom_ribbon(aes(x = year, ymin = lower_conf, ymax = upp_conf), fill = "white", colour = "grey", alpha = 0.2, linetype = "dashed") +
+                geom_line(aes(x = year, y = total, colour = total), size = 0.8) +
+                scale_colour_viridis("", na.value = "transparent", option = "plasma", direction = -1,
+                                     limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
+                scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
+                scale_x_continuous(breaks = c(2020, 2040), labels = c("", "")) +
+                xlab(NULL) + 
+                ylab("Vulnerability-weighted \npollination dependence") +
+                theme_bw() +
+                guides(guide_colourbar(ticks = FALSE)) +
+                theme(panel.grid = element_blank(),
+                      legend.position = "none", axis.ticks.x = element_blank(), strip.text = element_text(size = 10.5))
+        })
 }
 
 # Run the application 
