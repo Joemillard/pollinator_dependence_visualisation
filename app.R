@@ -13,6 +13,9 @@ map_data <- readRDS("data/global_change_pollination_dependence.rds")
 map_fort <- readRDS("data/plot_base_map.rds") %>%
     mutate(country_label = gsub("\\.\\d+", "", group))
 
+# read in the production data
+total_production <- readRDS("data/global_change_production.rds")
+
 # read in the change in index data for each country
 country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
     filter(!is.na(SOVEREIGNT)) %>%
@@ -53,13 +56,13 @@ ui <- shinyUI(fluidPage(
                # Global tab
                tabPanel("Global",
                         sidebarLayout(
-                            sidebarPanel(id="sidebar"),
-                            # Show a plot of the generated distribution
+                            sidebarPanel(id="sidebar",
+                                         plotOutput("production_change")),
                             mainPanel(
                                 plotOutput("maplot"),
                                 sliderInput("year",
-                                            "Year", min = 2015, 
-                                            max = 2047, value = 2015, 
+                                            "Year", min = 2016, 
+                                            max = 2047, value = 2016, 
                                             animate = TRUE, sep = ""),
                             )
                         )),
@@ -138,8 +141,29 @@ server <- function(input, output) {
             theme_bw() +
             guides(guide_colourbar(ticks = FALSE)) +
             theme(panel.grid = element_blank(),
-                  legend.position = "none", strip.text = element_text(size = 10.5))
-    }) 
+                  legend.position = "right", strip.text = element_text(size = 10.5))
+    })
+    
+    output$production_change <-  renderPlot({
+    
+        total_production %>%
+            filter(year <= input$year) %>%
+                ggplot() +
+                    geom_line(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
+                    geom_point(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
+                    facet_wrap(~scenario, ncol = 1) +
+                    scale_y_continuous(limits = c(1700000, 4100000), expand = c(0, 0), 
+                                       breaks = c(2000000, 2500000, 3000000, 3500000, 4000000), 
+                                       labels = c("2,000,000", "2,500,000", "3,000,000", "3,500,000", "4,000,000")) +
+                    scale_x_continuous(limits = c(2015, 2050), expand = c(0, 0), breaks = c(2020, 2030, 2040, 2050)) +
+                    scale_colour_manual("Climate model", values = c("black", "#E69F00", "#56B4E9", "#009E73", "#F0E442")) +
+                    scale_alpha_manual("Climate model", values = c(1, 0.4, 0.4, 0.4, 0.4)) +
+                    ylab("Vulnerability-weighted pollination prod. (metric tonnes)") +
+                    xlab("") +
+                    theme_bw() +
+                    theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15))
+    
+        }) %>% bindCache(input$year)
 }
 
 # Run the application 
