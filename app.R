@@ -18,6 +18,7 @@ for(i in 1:33){
     years_list[i] <- years
 }
 
+# assign the years to each name of the list
 names(map_data) <- years_list
 
 # read in the grey background basemap
@@ -55,7 +56,7 @@ server <- function(input, output) {
             ggplot() +
                 geom_polygon(aes(x = long, y = lat, group = group), data = map_fort, fill = "grey", alpha = 0.3) +
                 geom_tile(aes(x = x, y = y, fill = poll_vulnerability), data = map_data[[as.character(input$year)]]) +
-                scale_fill_viridis("Vulnerability-weighted \npollination dependence)",
+                scale_fill_viridis("Vulnerability-weighted \npollination dependence",
                                    na.value = "transparent", option = "plasma", direction = -1,
                                    limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
                 coord_equal() +
@@ -66,9 +67,9 @@ server <- function(input, output) {
                       axis.text = element_blank(),
                       axis.ticks = element_blank(), 
                       axis.title = element_blank(),
-                      legend.position = "none")
+                      legend.position = "right")
                 
-        })
+        }) %>% bindCache(input$year)
 }
 
 # Run the application 
