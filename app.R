@@ -10,7 +10,8 @@ library(ggiraph)
 map_data <- readRDS("data/global_change_pollination_dependence.rds")
 
 # read in the grey background basemap
-map_fort <- readRDS("data/plot_base_map.rds")
+map_fort <- readRDS("data/plot_base_map.rds") %>%
+    mutate(country_label = gsub("\\.\\d+", "", group))
 
 # read in the change in index data for each country
 country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
@@ -85,7 +86,7 @@ server <- function(input, output) {
         # plot the ggplot map for climate anomaly
         global_map <- ggplot() +
             ggtitle("Select country") +
-            geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = group, data_id = group), data = map_fort, fill = "grey") +
+            geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
             theme(panel.background = element_blank(),
                   panel.bord = element_blank(),
@@ -93,11 +94,12 @@ server <- function(input, output) {
                   axis.text = element_blank(),
                   axis.ticks = element_blank(), 
                   axis.title = element_blank(),
-                  legend.position = "right")
+                  legend.position = "right",
+                  plot.title = element_text(face = "bold", size = 20))
         
         ggiraph(code = print(global_map), selection_type = "single")
         
-    })
+    }) %>% bindCache(input$year)
     
     output$maplot<- renderPlot({
         
@@ -137,7 +139,7 @@ server <- function(input, output) {
             guides(guide_colourbar(ticks = FALSE)) +
             theme(panel.grid = element_blank(),
                   legend.position = "none", strip.text = element_text(size = 10.5))
-    })
+    }) 
 }
 
 # Run the application 
