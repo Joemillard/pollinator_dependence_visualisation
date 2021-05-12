@@ -67,7 +67,7 @@ ui <- shinyUI(fluidPage(
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          selectInput("select_country", "Select country", choices = country_change$SOVEREIGNT),
-                                         plotOutput("select_map")),
+                                         ggiraphOutput("select_map")),
                                          
                             mainPanel(
                                 plotOutput("country_change"),
