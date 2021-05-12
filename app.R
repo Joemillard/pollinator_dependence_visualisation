@@ -8,10 +8,17 @@ library(viridis)
 # read in the pollination dependence data
 map_data <- readRDS("data/global_change_pollination_dependence.rds")
 
-years <- seq(2006, 2050, 1)
+# selection of years and empty year list
+years <- 2048:2050
+years_list <- c()
 
-names(map_data) <- 
+# set up list of years
+for(i in 1:33){
+    years <- years - 1
+    years_list[i] <- years
+}
 
+names(map_data) <- years_list
 
 # read in the grey background basemap
 map_fort <- readRDS("data/plot_base_map.rds")
@@ -31,9 +38,10 @@ ui <- fluidPage(
         mainPanel(
            plotOutput("maplot"),
            sliderInput("year",
-                       "Year", min = 2006, 
-                       max = 2050, value = 2006, 
-                       animate = TRUE)
+                       "Year", min = 2015, 
+                       max = 2047, value = 2015, 
+                       animate = FALSE, sep = ""),
+           actionButton("update_map", "Update map")
         )
     )
 )
@@ -46,8 +54,7 @@ server <- function(input, output) {
             # plot the ggplot map for climate anomaly
             ggplot() +
                 geom_polygon(aes(x = long, y = lat, group = group), data = map_fort, fill = "grey", alpha = 0.3) +
-                geom_tile(aes(x = x, y = y, fill = poll_vulnerability), data = map_data[[input$year]]) +
-                ggtitle("2050") +
+                geom_tile(aes(x = x, y = y, fill = poll_vulnerability), data = map_data[[as.character(input$year)]]) +
                 scale_fill_viridis("Vulnerability-weighted \npollination dependence)",
                                    na.value = "transparent", option = "plasma", direction = -1,
                                    limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
