@@ -30,7 +30,7 @@ for(i in 1:33){
 names(map_data) <- years_list
 
 
-# Define UI for application that draws a histogram
+# Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
     tags$head(tags$style(
         HTML('
@@ -61,7 +61,7 @@ ui <- shinyUI(fluidPage(
            sliderInput("year",
                        "Year", min = 2015, 
                        max = 2047, value = 2015, 
-                       animate = FALSE, sep = ""),
+                       animate = TRUE, sep = ""),
         )
     )
     )
@@ -102,13 +102,12 @@ server <- function(input, output) {
                 scale_colour_viridis("", na.value = "transparent", option = "plasma", direction = -1,
                                      limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
                 scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
-                scale_x_continuous(breaks = c(2020, 2040), labels = c("", "")) +
-                xlab(NULL) + 
+                scale_x_continuous("", breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
                 ylab("Vulnerability-weighted \npollination dependence") +
                 theme_bw() +
                 guides(guide_colourbar(ticks = FALSE)) +
                 theme(panel.grid = element_blank(),
-                      legend.position = "none", axis.ticks.x = element_blank(), strip.text = element_text(size = 10.5))
+                      legend.position = "none", strip.text = element_text(size = 10.5))
         })
 }
 
