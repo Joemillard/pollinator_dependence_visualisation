@@ -10,13 +10,13 @@ library(lme4)
 library(yarg)
 
 # source in additional functions
-source("R/00_functions.R")
+source("C:/Users/joeym/Documents/PhD/Aims/Aim 4 - climate land use interaction effects on pollinators/R/00_functions.R")
 
 # load in the mean temperature data from CRU
 tmp <- raster::stack("C:/Users/joeym/Documents/PhD/Aims/Aim 4 - climate land use interaction effects on pollinators/data/cru_ts4.03.1901.2018.tmp.dat.nc", varname="tmp")
 
 # list the crop specific folders in the directory for external hard drive
-cropdirs <- list.dirs("G:/Extra_data_files/HarvestedAreaYield175Crops_Geotiff/HarvestedAreaYield175Crops_Geotiff/Geotiff", recursive = FALSE)
+cropdirs <- list.dirs("D:/Extra_data_files/HarvestedAreaYield175Crops_Geotiff/HarvestedAreaYield175Crops_Geotiff/Geotiff", recursive = FALSE)
 
 # read in the Klein pollinator dependent crops
 klein_cleaned <- read.csv("C:/Users/joeym/Documents/PhD/Aims/Aim 4 - climate land use interaction effects on pollinators/data/KleinPollinationDependentCrops.tar/KleinPollinationDependentCrops/data_cleaned.csv")
@@ -25,7 +25,7 @@ klein_cleaned <- read.csv("C:/Users/joeym/Documents/PhD/Aims/Aim 4 - climate lan
 PREDICTS_pollinators_orig <- readRDS("C:/Users/joeym/Documents/PhD/Aims/Aim 2 - understand response to environmental change/outputs/PREDICTS_pollinators_8_exp.rds")
 
 # set up the starting directory for future climate data
-SSP_directory <- ("G:/Extra_data_files/climate_projections/ISIMIPAnomalies.tar/ISIMIPAnomalies")
+SSP_directory <- ("D:/Extra_data_files/climate_projections/ISIMIPAnomalies.tar/ISIMIPAnomalies")
 
 #### PREDICTS data compilation and build model of insect pollinator response to climate change ####
 # filter for main pollinating taxa
@@ -247,7 +247,7 @@ rate_rasters <- list()
 # subset the file paths for just those that are pollination dependent to some extent
 # subset as strings to filter from klein_cleaned
 pollinated_crops <- grep(paste(unique(paste("/", klein_cleaned$MonfredaCrop, "_", sep = "")), collapse = "|"), unlisted_crops, value = TRUE)
-pollinat_crops_simp <- gsub("G:/Extra_data_files/HarvestedAreaYield175Crops_Geotiff/HarvestedAreaYield175Crops_Geotiff/Geotiff/", "", pollinated_crops)
+pollinat_crops_simp <- gsub("D:/Extra_data_files/HarvestedAreaYield175Crops_Geotiff/HarvestedAreaYield175Crops_Geotiff/Geotiff/", "", pollinated_crops)
 pollinat_crops_simp <- gsub('([^/]+$)', "", pollinat_crops_simp)
 pollinat_crops_simp <- gsub('/', "", pollinat_crops_simp)
 
@@ -443,7 +443,7 @@ average_clim_models <- function(yr, RCP, clim_models){
 }
 
 # set up empty list for each year raster
-climate_poll_data_future <- list
+climate_poll_data_future <- list()
 
 for(i in 1:length(years_list)){
 
@@ -457,7 +457,7 @@ for(i in 1:length(years_list)){
   all.files <- dir(path = SSP_directory,recursive = TRUE, full.names = TRUE)
   
   # using RCP 8.5 calculate average of separate models
-  mean.temp.2069.2071 <- stack(lapply(X = years_list[[1]], FUN = average_clim_models, RCP = RCP_scenarios[1], clim_models = climate_model_combs_adj[1]))
+  mean.temp.2069.2071 <- stack(lapply(X = years_list[[i]], FUN = average_clim_models, RCP = RCP_scenarios[1], clim_models = climate_model_combs_adj[1]))
   
   mean.temp.2069.2071 <- stackApply(x = mean.temp.2069.2071,indices = rep(1,3), fun = mean)
   
@@ -469,13 +469,13 @@ for(i in 1:length(years_list)){
   tmp2069_71std_climate_anomaly <- projectRaster(tmp2069_71std_climate_anomaly, crs = "+proj=moll +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
   
   # extract climate data just for those places that have crop production data
-  climate_poll_values_future[[i]] <- extract(tmp2069_71std_climate_anomaly, crop_df_locs, na.rm = FALSE)
+  climate_poll_values_future <- extract(tmp2069_71std_climate_anomaly, crop_df_locs, na.rm = FALSE)
   
   # merge the climate standardised values onto the pollinator dependence data
   climate_poll_data_future[[i]] <- cbind((crop_df %>% filter(!is.na(layer))), climate_poll_values_future, (crop_df_all %>% filter(!is.na(layer)) %>% select(layer) %>% rename("total_production" = "layer")))
   
   # set up prediction data on basis of that set of years
-  new_data_pred <- data.frame("standard_anom" = climate_poll_data_future[[i]]$climate_poll_values_future[[i]], Predominant_land_use = "Cropland")
+  new_data_pred <- data.frame("standard_anom" = climate_poll_data_future[[i]]$climate_poll_values_future, Predominant_land_use = "Cropland")
   
   # predict abundance for climate anomaly and join to data frame
   climate_poll_data_future[[i]]$abundance <- exp(predict(model_2c_abundance, new_data_pred, re.form = NA))
@@ -485,25 +485,4 @@ for(i in 1:length(years_list)){
 
 }
   
-# # plot the ggplot map for climate anomaly
-vulnerability_2050 <- climate_poll_data_future[[1]] %>%
-  ggplot() +
-  geom_polygon(aes(x = long, y = lat, group = group), data = map_fort, fill = "grey", alpha = 0.3) +
-  geom_tile(aes(x = x, y = y, fill = poll_vulnerability)) +
-  ggtitle("2050") +
-  scale_fill_viridis("Vulnerability-weighted \npollination dependence)",
-                     na.value = "transparent", option = "plasma", direction = -1,
-                     limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
-  coord_equal() +
-  guides(fill = guide_colourbar(ticks = FALSE)) +
-  theme(panel.background = element_blank(),
-        panel.bord = element_blank(),
-        panel.grid = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(), 
-        axis.title = element_blank(),
-        legend.position = "none")
-
-present_vulnerability + vulnerability_2050 + patchwork::plot_layout(ncol = 2)
-
-ggsave("vulnerability_weighted_production_map_4.png", scale = 1.1, dpi = 350)
+saveRDS(climate_poll_data_future, "global_change_pollination_dependence.rds")
