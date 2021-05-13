@@ -93,13 +93,13 @@ server <- function(input, output) {
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
             theme(panel.background = element_blank(),
-                  panel.bord = element_blank(),
+                  panel.bord = element_rect(colour = "black", fill=NA, size=2),
                   panel.grid = element_blank(), 
                   axis.text = element_blank(),
                   axis.ticks = element_blank(), 
                   axis.title = element_blank(),
                   legend.position = "right",
-                  plot.title = element_text(face = "bold", size = 20))
+                  plot.title = element_text(face = "bold", size = 20, margin = margin(0,0,10,0)))
         
         ggiraph(code = print(global_map), selection_type = "single")
         
@@ -137,8 +137,9 @@ server <- function(input, output) {
             scale_colour_viridis("", na.value = "transparent", option = "plasma", direction = -1,
                                  limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
             scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
-            scale_x_continuous("", breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
+            scale_x_continuous(breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
             ylab("Vulnerability-weighted \npollination dependence") +
+            xlab("Year") +
             theme_bw() +
             guides(guide_colourbar(ticks = FALSE)) +
             theme(panel.grid = element_blank(),
