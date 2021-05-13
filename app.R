@@ -62,7 +62,9 @@ ui <- shinyUI(fluidPage(
                                          plotOutput("crop_prod_change")),
                                          
                             mainPanel(
-                                plotOutput("production_change"))
+                                plotOutput("production_change"),
+                                h5("Projected change in total vulnerability-weighted pollination dependent production under RCP 8.5. Colours refer to the climate model excluded in that jack-knife projection (orange, excluding GFDL; blue excluding HadHEM2, green, excluding IPSL; yellow, excluding MIROC5), with the projection for all models included in black.
+                                   For each year into the future a standardised climate anomaly was projected globally, using a 3 year rolling average. For each annual projection of standardised climate anomaly, insect pollinator abundance on cropland was predicted according to a mixed effects linear model, and then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). In each cell pollination dependent production was then adjusted for the percentage reduction in abundance at that cell, before summing pollination dependent production for all cells at each time step.")),
                         )),
                # specific country tab
                tabPanel("Country",
@@ -125,6 +127,7 @@ server <- function(input, output) {
         
         total_production %>%
             filter(year <= input$year) %>%
+            filter(scenario == "RCP 8.5") %>%
             ggplot() +
             geom_line(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
             geom_point(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
@@ -138,7 +141,7 @@ server <- function(input, output) {
             ylab("Vulnerability-weighted pollination prod. (metric tonnes)") +
             xlab("") +
             theme_bw() +
-            theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15))
+            theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15), plot.caption = element_text(hjust = 0))
         
     }) %>% bindCache(input$year)
 
@@ -148,7 +151,7 @@ server <- function(input, output) {
             filter(year == input$year) %>%
             mutate(crop = fct_reorder(crop, -production_prop)) %>%
             ggplot() +
-                geom_bar(aes(x = crop, y = production_prop), stat = "identity") +
+                geom_bar(aes(x = crop, y = production_prop), stat = "identity", fill = "black") +
                 scale_y_continuous("Total production (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
                 xlab("Crop") +
                 theme_bw() +
