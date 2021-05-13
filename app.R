@@ -47,12 +47,12 @@ ui <- shinyUI(fluidPage(
     )),
     
     # Application title
-    titlePanel("Change in global pollination dependence vulnerability"),
+    titlePanel("Change in global pollination risk"),
     
     # nav bar with two panels for global and country plots
     navbarPage("Menu",
                # Global tab
-               tabPanel("Global",
+               tabPanel("Global scale",
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          sliderInput("year",
@@ -70,14 +70,14 @@ ui <- shinyUI(fluidPage(
                                    For each year into the future a standardised climate anomaly was projected globally, using a 3 year rolling average. For each annual projection of standardised climate anomaly, insect pollinator abundance on cropland was predicted according to a mixed effects linear model, and then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). In each cell pollination dependent production was then adjusted for the percentage reduction in abundance at that cell, before summing pollination dependent production for all cells at each time step.")),
                         )),
                # specific country tab
-               tabPanel("Country",
+               tabPanel("Country scale",
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          ggiraphOutput("select_map")),
                                          
                             mainPanel(
                                 plotOutput("country_change"),
-                                h5("Climate change vulnerability-weighted pollination dependence projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
+                                h5(style="text-align: justify;", "Climate change vulnerability-weighted pollination dependence projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
                                    Colours correspond to the total vulnerability-weighted pollination dependence in each cell at that time (i.e. the y axis): 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country, providing an indication of vulnerability variation within a country.")
                             )
                         )
