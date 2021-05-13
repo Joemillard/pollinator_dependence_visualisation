@@ -56,7 +56,7 @@ ui <- shinyUI(fluidPage(
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          sliderInput("year",
-                                                     "Select year", min = 2016, 
+                                                     "Select a year", min = 2016, 
                                                      max = 2047, value = 2016, 
                                                      animate = TRUE, sep = ""),
                                          plotOutput("crop_prod_change")),
@@ -73,7 +73,9 @@ ui <- shinyUI(fluidPage(
                                          ggiraphOutput("select_map")),
                                          
                             mainPanel(
-                                plotOutput("country_change")
+                                plotOutput("country_change"),
+                                h5("Climate change vulnerability-weighted pollination dependence projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
+                                   Colours correspond to the total vulnerability-weighted pollination dependence in each cell at that time (i.e. the y axis): 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country, providing an indication of vulnerability variation within a country.")
                             )
                         )
                )
@@ -88,7 +90,7 @@ server <- function(input, output) {
         
         # plot the ggplot map for climate anomaly
         global_map <- ggplot() +
-            ggtitle("Select country") +
+            ggtitle("Select a country") +
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
             theme(panel.background = element_blank(),
