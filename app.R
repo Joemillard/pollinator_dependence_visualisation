@@ -61,7 +61,7 @@ ui <- shinyUI(fluidPage(
                                                      animate = TRUE, sep = "", tick = 1),
                                          plotOutput("crop_prod_change"),
                                          
-                                         h5(style="text-align: justify;", ("Projected total production crop vulnerability for the top 20 crops by total pollination dependent production, for the years 2016 to x (where x = the selected year)."))),
+                                         h5(style="text-align: justify;", ("Predicted crop production risk for the top 20 crops by total pollination dependent production, for the years 2016 to x (where x = selected year)."))),
                                 
                                          
                             mainPanel(
@@ -79,7 +79,7 @@ ui <- shinyUI(fluidPage(
                             mainPanel(
                                 plotOutput("country_change"),
                                 h5(style="text-align: justify;", "Climate change vulnerability-weighted pollination dependence projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
-                                   Colours correspond to the total vulnerability-weighted pollination dependence in each cell at that time (i.e. the y axis): 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country, providing an indication of vulnerability variation within a country.")
+                                   Colours correspond to the median pollination dependence risk for all cells in that country at that time: 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country, providing an indication of vulnerability variation within a country.")
                             )
                         )
                )
@@ -121,7 +121,7 @@ server <- function(input, output) {
                                  limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
             scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
             scale_x_continuous(breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
-            ylab("Vulnerability-weighted \npollination dependence") +
+            ylab("Pollination dependence risk") +
             xlab("Year") +
             theme_bw() +
             guides(guide_colourbar(ticks = FALSE)) +
@@ -144,8 +144,8 @@ server <- function(input, output) {
             scale_x_continuous(limits = c(2015, 2050), expand = c(0, 0), breaks = c(2020, 2030, 2040, 2050)) +
             scale_colour_manual("Climate model", values = c("black", "#E69F00", "#56B4E9", "#009E73", "#F0E442")) +
             scale_alpha_manual("Climate model", values = c(1, 0.4, 0.4, 0.4, 0.4)) +
-            ylab("Total crop production at risk (metric tonnes)") +
-            xlab("") +
+            ylab("Total crop production risk (metric tonnes)") +
+            xlab(NULL) +
             theme_bw() +
             theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15), plot.caption = element_text(hjust = 0))
         
@@ -158,8 +158,8 @@ server <- function(input, output) {
             mutate(crop = fct_reorder(crop, -production_prop)) %>%
             ggplot() +
                 geom_bar(aes(x = crop, y = production_prop), stat = "identity", fill = "black") +
-                scale_y_continuous("Crop production at risk (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
-                xlab("Crop") +
+                scale_y_continuous("Crop production risk (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
+                xlab(NULL) +
                 theme_bw() +
                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
         
