@@ -66,7 +66,7 @@ ui <- shinyUI(fluidPage(
                                          
                             mainPanel(
                                 plotOutput("production_change"),
-                                h5(style="text-align: justify;","Projected change in total vulnerability-weighted pollination dependent production under RCP 8.5, for the years 2016- Colours refer to the climate model excluded in that jack-knife projection (orange, excluding GFDL; blue excluding HadHEM2, green, excluding IPSL; yellow, excluding MIROC5), with the projection for all models included in black.
+                                h5(style="text-align: justify;","Projected change in total vulnerability-weighted pollination dependent production under RCP 8.5, for the years 2016 to x (where x = selected year). Colours refer to the climate model excluded in that jack-knife projection (orange, excluding GFDL; blue excluding HadHEM2, green, excluding IPSL; yellow, excluding MIROC5), with the projection for all models included in black.
                                    For each year into the future a standardised climate anomaly was projected globally, using a 3 year rolling average. For each annual projection of standardised climate anomaly, insect pollinator abundance on cropland was predicted according to a mixed effects linear model, and then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). In each cell pollination dependent production was then adjusted for the percentage reduction in abundance at that cell, before summing pollination dependent production for all cells at each time step.")),
                         )),
                # specific country tab
