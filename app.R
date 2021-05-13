@@ -5,6 +5,7 @@ library(dplyr)
 library(ggplot2)
 library(viridis)
 library(ggiraph)
+library(forcats)
 
 # read in the grey background basemap
 map_fort <- readRDS("data/plot_base_map.rds") %>%
@@ -18,6 +19,9 @@ country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
     filter(!is.na(SOVEREIGNT)) %>%
     filter(!is.na(total))
 
+# read in total production for histogram
+crop_change <- readRDS("data/global_change_production_crops.rds")
+
 # selection of years and empty year list
 years <- 2048:2050
 years_list <- c()
@@ -27,7 +31,6 @@ for(i in 1:33){
     years <- years - 1
     years_list[i] <- years
 }
-
 
 # Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
@@ -56,10 +59,10 @@ ui <- shinyUI(fluidPage(
                                                      "Select year", min = 2016, 
                                                      max = 2047, value = 2016, 
                                                      animate = TRUE, sep = ""),
+                                         plotOutput("crop_prod_change")),
                                          
-                                         h5("Projected change in total vulnerability-weighted pollination dependent production under three RCP scenarios (8.5, 6.0, and 2.6), jack-knifed for each climate model.")),
                             mainPanel(
-                                plotOutput("production_change"),                            )
+                                plotOutput("production_change"))
                         )),
                # specific country tab
                tabPanel("Country",
@@ -68,7 +71,7 @@ ui <- shinyUI(fluidPage(
                                          ggiraphOutput("select_map")),
                                          
                             mainPanel(
-                                plotOutput("country_change"),
+                                plotOutput("country_change")
                             )
                         )
                )
@@ -139,6 +142,19 @@ server <- function(input, output) {
         
     }) %>% bindCache(input$year)
 
+    output$crop_prod_change <-  renderPlot({
+        
+        crop_change %>%
+            filter(year == input$year) %>%
+            mutate(crop = fct_reorder(crop, -production_prop)) %>%
+            ggplot() +
+                geom_bar(aes(x = crop, y = production_prop), stat = "identity") +
+                scale_y_continuous("Total production (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
+                xlab("Crop") +
+                theme_bw() +
+                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+        
+    })
 
 }  
 
