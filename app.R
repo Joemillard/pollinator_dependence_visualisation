@@ -40,7 +40,7 @@ ui <- shinyUI(fluidPage(
         HTML('
          #sidebar {
             background-color: #FFFFFF;
-            border-color: #FFFFFF;
+            border-color: #000000;
             box-shadow: inset 0 0px 0px rgb(0 0 0 / 5%);
         }
         body, label, input, button, select { 
@@ -58,12 +58,13 @@ ui <- shinyUI(fluidPage(
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          sliderInput("year",
-                                                     "Year", min = 2016, 
+                                                     "Select year", min = 2016, 
                                                      max = 2047, value = 2016, 
                                                      animate = TRUE, sep = ""),
-                                         plotOutput("production_change")),
+                                         imageOutput("production_change"),
+                                         h5("Projected change in total vulnerability-weighted pollination dependent production under three RCP scenarios (8.5, 6.0, and 2.6), jack-knifed for each climate model.")),
                             mainPanel(
-                                plotOutput("maplot")
+                               # plotOutput("maplot")
                             )
                         )),
                # specific country tab
@@ -141,30 +142,25 @@ server <- function(input, output) {
             theme_bw() +
             guides(guide_colourbar(ticks = FALSE)) +
             theme(panel.grid = element_blank(),
-                  legend.position = "right", strip.text = element_text(size = 10.5))
+                  legend.position = "none", strip.text = element_text(size = 10.5), text = element_text(size = 17))
     })
     
-    output$production_change <-  renderPlot({
+    output$production_change <-  renderImage({
     
-        total_production %>%
-            filter(year <= input$year) %>%
-                ggplot() +
-                    geom_line(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
-                    geom_point(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
-                    facet_wrap(~scenario, ncol = 1) +
-                    scale_y_continuous(limits = c(1700000, 4100000), expand = c(0, 0), 
-                                       breaks = c(2000000, 2500000, 3000000, 3500000, 4000000), 
-                                       labels = c("2,000,000", "2,500,000", "3,000,000", "3,500,000", "4,000,000")) +
-                    scale_x_continuous(limits = c(2015, 2050), expand = c(0, 0), breaks = c(2020, 2030, 2040, 2050)) +
-                    scale_colour_manual("Climate model", values = c("black", "#E69F00", "#56B4E9", "#009E73", "#F0E442")) +
-                    scale_alpha_manual("Climate model", values = c(1, 0.4, 0.4, 0.4, 0.4)) +
-                    ylab("Vulnerability-weighted pollination prod. (metric tonnes)") +
-                    xlab("") +
-                    theme_bw() +
-                    theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15))
-    
-        }) %>% bindCache(input$year)
+        filename <- normalizePath(file.path('./animated_figures/production',
+                                            paste('animated_production', input$year, '.png', sep="")))
+        
+        # Return a list containing the filename and alt text
+        list(src = filename,
+             alt = paste("Image number", input$year),
+             width = 600,
+             height = 300)
+        
+    }, deleteFile = FALSE)
 }
+
+
+    
 
 # Run the application 
 shinyApp(ui = ui, server = server)
