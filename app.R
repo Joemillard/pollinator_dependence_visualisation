@@ -73,6 +73,7 @@ ui <- shinyUI(fluidPage(
                tabPanel("Country scale",
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
+                                         span(textOutput("selected_country"), style="font-size: 20px; font-weight: bold;"),
                                          ggiraphOutput("select_map")),
                                          
                             mainPanel(
@@ -143,7 +144,7 @@ server <- function(input, output) {
             scale_x_continuous(limits = c(2015, 2050), expand = c(0, 0), breaks = c(2020, 2030, 2040, 2050)) +
             scale_colour_manual("Climate model", values = c("black", "#E69F00", "#56B4E9", "#009E73", "#F0E442")) +
             scale_alpha_manual("Climate model", values = c(1, 0.4, 0.4, 0.4, 0.4)) +
-            ylab("Vulnerability-weighted pollination prod. (metric tonnes)") +
+            ylab("Total crop production at risk (metric tonnes)") +
             xlab("") +
             theme_bw() +
             theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15), plot.caption = element_text(hjust = 0))
@@ -157,14 +158,14 @@ server <- function(input, output) {
             mutate(crop = fct_reorder(crop, -production_prop)) %>%
             ggplot() +
                 geom_bar(aes(x = crop, y = production_prop), stat = "identity", fill = "black") +
-                scale_y_continuous("Total production (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
+                scale_y_continuous("Crop production at risk (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
                 xlab("Crop") +
                 theme_bw() +
                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
         
     })
     
-    output$year_text <- renderText({input$year})
+    output$selected_country<- renderText({gsub("\\.\\d+", "", input$select_map_selected)})
 
 }  
 
