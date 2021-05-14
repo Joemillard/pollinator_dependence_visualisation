@@ -24,8 +24,7 @@ country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
 crop_change <- readRDS("data/global_change_production_crops.rds")
 
 # read in production for each country
-country_production <- readRDS("data/country_pollination_dependent_production.rds") %>%
-    rbindlist()
+country_production <- readRDS("data/country_pollination_dependent_production.rds")
 
 # selection of years and empty year list
 years <- 2048:2050
@@ -39,6 +38,7 @@ for(i in 1:33){
 
 # Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
+
     tags$head(tags$style(
         HTML('
          #sidebar {
@@ -76,18 +76,21 @@ ui <- shinyUI(fluidPage(
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          span(textOutput("selected_country"), style="font-size: 20px; font-weight: bold;"),
-                                         ggiraphOutput("select_map"),
-                                         plotOutput("country_production")),
+                                         (""),
+                                         ggiraphOutput("select_map")),
                                          
                             mainPanel(
                                 plotOutput("country_change"),
                                 h5(style="text-align: justify;", "Climate change pollination dependence risk projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects linear model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
-                                   The coloured line corresponds to the median pollination dependence risk for all cells in that country at that time step: 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country at that time step, providing an indication of vulnerability variation within a country.")
+                                   The coloured line corresponds to the median pollination dependence risk for all cells in that country at that time step: 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country at that time step, providing an indication of vulnerability variation within a country."),
+                                plotOutput("country_production"),
+                                h5(style="text-align: justify;", "Total pollination dependent production for the 20 crops with the highest pollination dependent production, ordered by magnitude for the selected country. Total production values are for the year 2000, taken from Monfreda et al. Pollination dependent production is calculated by multiplying total crop production for each crop by the pollination dependence ratios for that crop, as reported in Klein et al (2007). For any Monfreda crop represented by multiple dependence ratios, we took the pollination dependence to be the mean of the ratios for that crop. 
+                                   Colours represent the mean pollination dependent production for that Monfreda et al crop (i.e. 0.95, essential; 0.65, great; modest/great, 0.45; modest, 0.25; little, 0.05). NE refers to any set of crops not included elsewhere."))
                             )
                         )
                )
     )
-))
+)
 
 
 # Define server logic required to draw a histogram
@@ -101,13 +104,15 @@ server <- function(input, output) {
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
             theme(panel.background = element_blank(),
+                  plot.background = element_blank(),
                   panel.bord = element_rect(colour = "black", fill=NA, size=2),
                   panel.grid = element_blank(), 
                   axis.text = element_blank(),
                   axis.ticks = element_blank(), 
                   axis.title = element_blank(),
                   legend.position = "right",
-                  plot.title = element_text(face = "bold", size = 20, margin = margin(0,0,10,0)))
+                  plot.title = element_text(face = "bold", size = 20, margin = margin(0,0,10,0)),
+                  plot.margin = unit(c(0, 0, 0, 0), "cm"))
         
         ggiraph(code = print(global_map), selection_type = "single")
         
@@ -162,13 +167,14 @@ server <- function(input, output) {
             filter(total_production != 0) %>%
             mutate(crop = forcats::fct_reorder(crop, -total_production)) %>%
             ggplot() +
-                geom_bar(aes(x = crop, y = total_production), stat = "identity", fill = "black") +
-                xlab(NULL) +
-                scale_y_continuous("Total pollination pollination dependent production (metric tonnes)", 
+                geom_bar(aes(x = crop, y = total_production, fill = pollination_dependence), stat = "identity") +
+                xlab("Crop") +
+                scale_y_continuous("Pollination dependent prod. (m. tonnes)", 
                                    expand = c(0, 0), 
                                    limits = c(0, max(country_production$total_production[country_production$SOVEREIGNT == gsub("\\.\\d+", "", input$select_map_selected)], na.rm = TRUE) * 1.2)) +
+                scale_fill_viridis("Average pollination \ndependence ratio") +
                 theme_bw() +
-                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1), text = element_text(size = 13))
         
     })
     
