@@ -6,6 +6,7 @@ library(ggplot2)
 library(viridis)
 library(ggiraph)
 library(forcats)
+library(data.table)
 
 # read in the grey background basemap
 map_fort <- readRDS("data/plot_base_map.rds") %>%
@@ -21,6 +22,10 @@ country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
 
 # read in total production for histogram
 crop_change <- readRDS("data/global_change_production_crops.rds")
+
+# read in production for each country
+country_production <- readRDS("data/country_pollination_dependent_production.rds") %>%
+    rbindlist()
 
 # selection of years and empty year list
 years <- 2048:2050
@@ -71,7 +76,8 @@ ui <- shinyUI(fluidPage(
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          span(textOutput("selected_country"), style="font-size: 20px; font-weight: bold;"),
-                                         ggiraphOutput("select_map")),
+                                         ggiraphOutput("select_map"),
+                                         plotOutput("country_production")),
                                          
                             mainPanel(
                                 plotOutput("country_change"),
@@ -148,6 +154,24 @@ server <- function(input, output) {
         
     }) %>% bindCache(input$year)
 
+    
+    output$country_production <- renderPlot({
+        
+        country_production %>%
+            filter(SOVEREIGNT %in% gsub("\\.\\d+", "", input$select_map_selected)) %>% 
+            filter(total_production != 0) %>%
+            mutate(crop = forcats::fct_reorder(crop, -total_production)) %>%
+            ggplot() +
+                geom_bar(aes(x = crop, y = total_production), stat = "identity", fill = "black") +
+                xlab(NULL) +
+                scale_y_continuous("Total pollination pollination dependent production (metric tonnes)", 
+                                   expand = c(0, 0), 
+                                   limits = c(0, max(country_production$total_production[country_production$SOVEREIGNT == gsub("\\.\\d+", "", input$select_map_selected)], na.rm = TRUE) * 1.2)) +
+                theme_bw() +
+                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
+        
+    })
+    
     output$crop_prod_change <-  renderPlot({
         
         crop_change %>%
