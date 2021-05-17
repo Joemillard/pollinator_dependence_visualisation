@@ -38,7 +38,6 @@ ui <- shinyUI(fluidPage(
          }
         #year-label { font-size: 14pt; }
 
-        
         body, label, input, button, select { 
           font-family: "Arial";
         }')
