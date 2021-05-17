@@ -35,7 +35,10 @@ ui <- shinyUI(fluidPage(
             background-color: #FFFFFF;
             border-color: #000000;
             box-shadow: inset 0 0px 0px rgb(0 0 0 / 5%);
-        }
+         }
+        #year-label { font-size: 14pt; }
+
+        
         body, label, input, button, select { 
           font-family: "Arial";
         }')
@@ -50,7 +53,7 @@ ui <- shinyUI(fluidPage(
                         fluidRow(
                             column(6,
                                    h3(style = "font-weight: bold;", "Overview"),
-                                   h5(style="text-align: justify;", "This dashboard combines six datasets to predict temporal and spatial vulnerabilities of crop pollination that that may result from future climate change: the PREDICTS database (Hudson et al. 2017), a set of likely pollinating and non-pollinating species derived previously (Millard et al. 2021), the historical degree of global climate change (Harris et al. 2020), future scenarios of climate change, a set of rasters for global crop production (Monfreda et al. 2008), and ratios of crop pollination dependence (Klein et al. 2007)."),
+                                   h5(style="text-align: justify;", "This dashboard combines six datasets to project temporal and spatial vulnerabilities of crop pollination to future climate change: the PREDICTS database (Hudson et al. 2017), a set of likely pollinating and non-pollinating species derived previously (Millard et al. 2021), the historical degree of global climate change (Harris et al. 2020), future scenarios of climate change (ISIMIP), a set of rasters for global crop production (Monfreda et al. 2008), and ratios of crop pollination dependence (Klein et al. 2007)."),
                                    h5(style="text-align: justify;", "In the first tab ('Country scale') you'll find predictions for change in crop pollination risk for all countries of the world, projected under RCP 8.5. In the second tab ('Global scale') you'll find predictions for change in total pollination production at risk.
                                       All projections of risk to crop pollination are based on a space-for-time prediction of insect pollinator abundance losses resulting from climate change (see figure opposite).")),
                             column(6,
@@ -59,10 +62,10 @@ ui <- shinyUI(fluidPage(
                             ))),
                tabPanel("Country scale",
                         sidebarLayout(
-                            sidebarPanel(id="sidebar",
+                            sidebarPanel(id="sidebar", width = 5,
                                          span(textOutput("selected_country"), style="font-size: 24px; font-weight: bold;"),
-                                         ggiraphOutput("select_map")),
-                            mainPanel(
+                                         ggiraphOutput("select_map", height = "30%")),
+                            mainPanel(width = 7,
                                 plotOutput("country_change"),
                                 h5(style="text-align: justify;", "Climate change pollination dependence risk projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects linear model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
                                    The coloured line here corresponds to the median pollination dependence risk for all cells in that country at that time step: 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country at that time step, providing an indication of vulnerability variation within a country."),
@@ -95,9 +98,10 @@ server <- function(input, output) {
     # output the map for selecting countries
     output$select_map <- renderggiraph({
         global_map <- ggplot() +
-            ggtitle("Select a country:") +
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
+            labs(title = "Select a country:") +
+            
             theme(panel.background = element_blank(),
                   plot.background = element_blank(),
                   panel.bord = element_rect(colour = "black", fill=NA, size=2),
@@ -106,7 +110,7 @@ server <- function(input, output) {
                   axis.ticks = element_blank(), 
                   axis.title = element_blank(),
                   legend.position = "right",
-                  plot.title = element_text(face = "bold", size = 20, margin = margin(0,0,10,0)),
+                  plot.title = element_text(family = "Arial", face = "bold", size = 20, margin = margin(0,0,10,0)),
                   plot.margin = unit(c(0, 0, 0, 0), "cm"))
         
         ggiraph(code = print(global_map), selection_type = "single")
