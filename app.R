@@ -94,7 +94,6 @@ server <- function(input, output) {
     
     # output the map for selecting countries
     output$select_map <- renderggiraph({
-        
         global_map <- ggplot() +
             ggtitle("Select a country:") +
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
@@ -111,7 +110,6 @@ server <- function(input, output) {
                   plot.margin = unit(c(0, 0, 0, 0), "cm"))
         
         ggiraph(code = print(global_map), selection_type = "single")
-        
     }) %>% bindCache(input$year)
     
     # plot of total production vulnerability for each country
@@ -135,7 +133,6 @@ server <- function(input, output) {
     
     # plot of change in global change in pollination dependent production
     output$production_change <-  renderPlot({
-        
         total_production %>%
             filter(year <= input$year) %>%
             filter(scenario == "RCP 8.5") %>%
@@ -153,12 +150,10 @@ server <- function(input, output) {
             xlab(NULL) +
             theme_bw() +
             theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15), plot.caption = element_text(hjust = 0))
-        
     }) %>% bindCache(input$year)
 
     # plot of total pollination dependent production for the top 20 crops in each country
     output$country_production <- renderPlot({
-        
         country_production %>%
             filter(SOVEREIGNT %in% gsub("\\.\\d+", "", input$select_map_selected)) %>% 
             filter(total_production != 0) %>%
@@ -172,12 +167,10 @@ server <- function(input, output) {
                 scale_fill_viridis("Average pollination \ndependence ratio") +
                 theme_bw() +
                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1), text = element_text(size = 14))
-        
     })
     
     # plot for the change in total global crop production risk for each crop
     output$crop_prod_change <-  renderPlot({
-        
         crop_change %>%
             filter(year == input$year) %>%
             mutate(crop = fct_reorder(crop, -production_prop)) %>%
@@ -187,11 +180,9 @@ server <- function(input, output) {
                 xlab(NULL) +
                 theme_bw() +
                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
-        
     })
     
     output$selected_country<- renderText({gsub("\\.\\d+", "", input$select_map_selected)})
-
 }  
 
 # Run the application 
