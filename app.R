@@ -26,16 +26,6 @@ crop_change <- readRDS("data/global_change_production_crops.rds")
 # read in production for each country
 country_production <- readRDS("data/country_pollination_dependent_production.rds")
 
-# selection of years and empty year list
-years <- 2048:2050
-years_list <- c()
-
-# set up list of years
-for(i in 1:33){
-    years <- years - 1
-    years_list[i] <- years
-}
-
 # Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
 
@@ -56,38 +46,55 @@ ui <- shinyUI(fluidPage(
     
     # nav bar with two panels for global and country plots
     navbarPage("Menu",
+               # specific country tab
+               tabPanel("Overview",
+                        fluidRow(
+                            column(6,
+                                   h3(style = "font-weight: bold;", "Overview"),
+                                   h5(style="text-align: justify;", "This dashboard combines six datasets to predict temporal and spatial vulnerabilities of crop pollination that that may result from future climate change: the PREDICTS database (Hudson et al. 2017), a set of likely pollinating and non-pollinating species derived previously (Millard et al. 2021), the historical degree of global climate change (Harris et al. 2020), future scenarios of climate change, a set of rasters for global crop production (Monfreda et al. 2008), and ratios of crop pollination dependence (Klein et al. 2007)."),
+                                   h5(style="text-align: justify;", "In the first tab ('Country scale') you'll find predictions for change in crop pollination risk for all countries of the world, projected under RCP 8.5. In the second tab ('Global scale') you'll find predictions for change in total pollination production at risk.
+                                      All projections of risk to crop pollination are based on a space-for-time prediction of insect pollinator abundance losses resulting from climate change (see figure opposite).")),
+                            column(6,
+                                   img(style="display: block; margin-left: auto; margin-right: auto;", src = "Fig_1.png", height = 600, width = 450),
+                                   h5(style="text-align: justify;", "Response of pollinating and non-pollinating total abundance to standardised climate anomaly on primary vegetation and cropland (note that abundance is plotted on a log scale). Each panel represents a linear mixed-effects model for pollinating or non-pollinating insects and vertebrates. Coloured lines represent median fitted estimates for each interaction, and shading 95% confidence intervals around that prediction: green, primary vegetation; orange, cropland.")
+                            ))),
+                        
+                        
+    
+               tabPanel("Country scale",
+                        sidebarLayout(
+                            sidebarPanel(id="sidebar",
+                                         span(textOutput("selected_country"), style="font-size: 24px; font-weight: bold;"),
+                                         
+                                         
+                                        
+                                        ggiraphOutput("select_map")),
+                            
+                            mainPanel(
+                                plotOutput("country_change"),
+                                h5(style="text-align: justify;", "Climate change pollination dependence risk projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects linear model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
+                                   The coloured line here corresponds to the median pollination dependence risk for all cells in that country at that time step: 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country at that time step, providing an indication of vulnerability variation within a country."),
+                                plotOutput("country_production"),
+                                h5(style="text-align: justify;", "Total pollination dependent production for the 20 crops with the highest pollination dependent production, ordered by magnitude for the selected country. Total production values are for the year 2000, taken from Monfreda et al. Pollination dependent production is calculated by multiplying total crop production for each crop by the pollination dependence ratios for that crop, as reported in Klein et al (2007). For any Monfreda crop represented by multiple dependence ratios, we took the pollination dependence to be the mean of the ratios for that crop. 
+                                   Colours represent the mean pollination dependent production for that Monfreda et al crop (i.e. 0.95, essential; 0.65, great; modest/great, 0.45; modest, 0.25; little, 0.05). NE refers to any set of crops not included elsewhere."))
+                        )
+               ),
                # Global tab
                tabPanel("Global scale",
                         sidebarLayout(
                             sidebarPanel(id="sidebar",
                                          sliderInput("year",
-                                                     "Select a year", min = 2016, 
+                                                     "Select a year:", min = 2016, 
                                                      max = 2047, value = 2016, 
                                                      animate = TRUE, sep = "", tick = 1),
                                          plotOutput("crop_prod_change"),
-                                         h5(style="text-align: justify;", ("Predicted crop production risk for the 20 crops with the greatest pollination dependent production, for the years 2016 to x (where x = selected year)."))),
+                                         h5(style="text-align: justify;", ("Predicted crop production risk for the 20 crops with the greatest pollination dependent production, for the years 2016 to x (where x = selected year). Pollination dependent production is calculated by multiplying total crop production for each crop by the pollination dependence ratios for that crop, as reported in Klein et al (2007) (i.e. 0.95, essential; 0.65, great; modest/great, 0.45; modest, 0.25; little, 0.05). For any Monfreda crop represented by multiple dependence ratios, we took the pollination dependence to be the mean of the ratios for that crop."))),
                             mainPanel(
                                 plotOutput("production_change"),
                                 h5(style="text-align: justify;","Predicted change in total crop production risk (for all crops) under RCP 8.5, for the years 2016 to x (where x = selected year). Colours refer to the climate model excluded in that jack-knife projection (orange, excluding GFDL; blue excluding HadHEM2, green, excluding IPSL; yellow, excluding MIROC5), with the projection for all models included in black.
                                    For each year into the future a standardised climate anomaly was projected globally, using a 3 year rolling average. For each annual projection of standardised climate anomaly, insect pollinator abundance on cropland was predicted according to a mixed effects linear model, and then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). In each cell pollination dependent production was then adjusted for the percentage reduction in abundance at that cell, before summing pollination dependent production for all cells at each time step.")),
-                        )),
-               # specific country tab
-               tabPanel("Country scale",
-                        sidebarLayout(
-                            sidebarPanel(id="sidebar",
-                                         span(textOutput("selected_country"), style="font-size: 20px; font-weight: bold;"),
-                                         (""),
-                                         ggiraphOutput("select_map")),
-                                         
-                            mainPanel(
-                                plotOutput("country_change"),
-                                h5(style="text-align: justify;", "Climate change pollination dependence risk projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects linear model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
-                                   The coloured line corresponds to the median pollination dependence risk for all cells in that country at that time step: 1, dark purple; 0.5, orange, and 0, yellow. A value of 1 indicates a hypothetical region in which all crop production in that cell is dependent on pollination, and predicted insect pollinator abundance loss is 100%. Grey dashed lines represent the 2.5th and 97.5th percentiles for the cells in that country at that time step, providing an indication of vulnerability variation within a country."),
-                                plotOutput("country_production"),
-                                h5(style="text-align: justify;", "Total pollination dependent production for the 20 crops with the highest pollination dependent production, ordered by magnitude for the selected country. Total production values are for the year 2000, taken from Monfreda et al. Pollination dependent production is calculated by multiplying total crop production for each crop by the pollination dependence ratios for that crop, as reported in Klein et al (2007). For any Monfreda crop represented by multiple dependence ratios, we took the pollination dependence to be the mean of the ratios for that crop. 
-                                   Colours represent the mean pollination dependent production for that Monfreda et al crop (i.e. 0.95, essential; 0.65, great; modest/great, 0.45; modest, 0.25; little, 0.05). NE refers to any set of crops not included elsewhere."))
-                            )
-                        )
+                        ))
+
                )
     )
 )
@@ -100,7 +107,7 @@ server <- function(input, output) {
         
         # plot the ggplot map for climate anomaly
         global_map <- ggplot() +
-            ggtitle("Select a country") +
+            ggtitle("Select a country:") +
             geom_polygon_interactive(aes(x = long, y = lat, group = group, tooltip = country_label, data_id = group), data = map_fort, fill = "grey") +
             coord_equal() +
             theme(panel.background = element_blank(),
@@ -174,7 +181,7 @@ server <- function(input, output) {
                                    limits = c(0, max(country_production$total_production[country_production$SOVEREIGNT == gsub("\\.\\d+", "", input$select_map_selected)], na.rm = TRUE) * 1.2)) +
                 scale_fill_viridis("Average pollination \ndependence ratio") +
                 theme_bw() +
-                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1), text = element_text(size = 13))
+                theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1), text = element_text(size = 14))
         
     })
     
