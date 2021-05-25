@@ -13,7 +13,7 @@ map_fort <- readRDS("data/plot_base_map.rds") %>%
     mutate(country_label = gsub("\\.\\d+", "", group))
 
 # read in the production data
-total_production <- readRDS("data/global_change_production.rds")
+total_production <- readRDS("data/global_change_production_2.rds")
 
 # read in the change in index data for each country
 country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
@@ -21,7 +21,7 @@ country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
     filter(!is.na(total))
 
 # read in total production for histogram
-crop_change <- readRDS("data/global_change_production_crops.rds")
+crop_change <- readRDS("data/global_change_production_crops_2.rds")
 
 # read in production for each country
 country_production <- readRDS("data/country_pollination_dependent_production.rds")
@@ -143,13 +143,14 @@ server <- function(input, output) {
             geom_line(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
             geom_point(aes(x = year, y = vulnerability, colour = model, alpha = model)) +
             facet_wrap(~scenario, ncol = 2) +
-            scale_y_continuous(limits = c(1700000, 4100000), expand = c(0, 0), 
-                               breaks = c(2000000, 2500000, 3000000, 3500000, 4000000), 
-                               labels = c("2,000,000", "2,500,000", "3,000,000", "3,500,000", "4,000,000")) +
+            scale_y_continuous(limits = c(72000000, 148000000), 
+                               expand = c(0, 0), 
+                               breaks = c(80000000, 100000000, 120000000, 140000000), 
+                               labels = c("80", "100", "120", "140")) +
             scale_x_continuous(limits = c(2015, 2050), expand = c(0, 0), breaks = c(2020, 2030, 2040, 2050)) +
             scale_colour_manual("Climate model", values = c("black", "#E69F00", "#56B4E9", "#009E73", "#F0E442")) +
             scale_alpha_manual("Climate model", values = c(1, 0.4, 0.4, 0.4, 0.4)) +
-            ylab("Total crop production risk (metric tonnes)") +
+            ylab("Pollination production risk (million tonnes)") +
             xlab(NULL) +
             theme_bw() +
             theme(panel.grid = element_blank(), legend.position = "right", text = element_text(size = 15), plot.caption = element_text(hjust = 0))
@@ -164,7 +165,7 @@ server <- function(input, output) {
             ggplot() +
                 geom_bar(aes(x = crop, y = total_production, fill = pollination_dependence), stat = "identity") +
                 xlab("Crop") +
-                scale_y_continuous("Pollination dependent prod. (m. tonnes)", 
+                scale_y_continuous("Pollination dependent prod. (tonnes)", 
                                    expand = c(0, 0), 
                                    limits = c(0, max(country_production$total_production[country_production$SOVEREIGNT == gsub("\\.\\d+", "", input$select_map_selected)], na.rm = TRUE) * 1.2)) +
                 scale_fill_viridis("Average pollination \ndependence ratio") +
@@ -179,7 +180,11 @@ server <- function(input, output) {
             mutate(crop = fct_reorder(crop, -production_prop)) %>%
             ggplot() +
                 geom_bar(aes(x = crop, y = production_prop), stat = "identity", fill = "black") +
-                scale_y_continuous("Crop production risk (metric tonnes)", expand = c(0, 0), limits = c(0, 52126437)) +
+                scale_y_continuous("Pollination production risk (million tonnes)", 
+                                   expand = c(0, 0),
+                                   limits = c(0, 20000000),
+                                   breaks = c(5000000, 10000000, 15000000, 20000000),
+                                   labels = c("5", "10", "15", "20")) +
                 xlab(NULL) +
                 theme_bw() +
                 theme(panel.grid = element_blank(), axis.text.x = element_text(angle = 45, hjust = 1))
