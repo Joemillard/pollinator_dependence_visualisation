@@ -44,7 +44,7 @@ ui <- shinyUI(fluidPage(
     )),
     
     # Application title
-    span(titlePanel("Global patterns in crop pollination vulnerability to land-use and climate change"), style="color: #000000"),
+    span(titlePanel("Worldwide vulnerability of local pollinator abundance and crop pollination to land-use and climate change"), style="color: #000000"),
     
     # nav bar with two panels for global and country plots
     navbarPage("Menu",
