@@ -17,7 +17,7 @@ map_fort <- readRDS("data/plot_base_map.rds") %>%
 total_production <- readRDS("data/global_change_production_2.rds")
 
 # read in the change in index data for each country
-country_change <- readRDS("data/country_change_pollination_dependence.rds") %>%
+country_change <- readRDS("data/country_change_pollination_dependence_2.rds") %>%
     filter(!is.na(SOVEREIGNT)) %>%
     filter(!is.na(total))
 
@@ -149,8 +149,8 @@ server <- function(input, output) {
             geom_ribbon(aes(x = year, ymin = lower_conf, ymax = upp_conf), fill = "white", colour = "grey", alpha = 0.2, linetype = "dashed") +
             geom_line(aes(x = year, y = total, colour = total), size = 0.8) +
             scale_colour_viridis("", na.value = "transparent", option = "plasma", direction = -1,
-                                 limits = c(0, 1), breaks = c(0, 0.25, 0.5, 0.75, 1), labels = c("0", "0.25", "0.5", "0.75", "1")) +
-            scale_y_continuous(limits = c(0, 1), labels = c("0", "0.25", "0.5", "0.75", "1"), expand = c(0, 0)) +
+                                 limits = c(0, 0.3), breaks = c(0, 0.1, 0.2, 0.3), labels = c(0, 0.1, 0.2, 0.3)) +
+            scale_y_continuous(limits = c(0, 0.3), breaks = c(0, 0.1, 0.2, 0.3), labels = c("0", "0.1", "0.2", "0.3"), expand = c(0, 0)) +
             scale_x_continuous(breaks = c(2020, 2030, 2040), labels = c(2020, 2030, 2040)) +
             ylab("Pollination dependence risk") +
             xlab("Year") +
