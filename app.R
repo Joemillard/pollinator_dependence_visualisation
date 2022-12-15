@@ -7,6 +7,7 @@ library(viridis)
 library(ggiraph)
 library(forcats)
 library(data.table)
+library(shinyjs)
 
 # read in the grey background basemap
 map_fort <- readRDS("data/plot_base_map.rds") %>%
@@ -28,6 +29,8 @@ country_production <- readRDS("data/country_pollination_dependent_production.rds
 
 # Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
+    
+    shinyjs::useShinyjs(),
     
     tags$head(tags$style(
         HTML('
@@ -63,7 +66,11 @@ ui <- shinyUI(fluidPage(
                         sidebarLayout(
                             sidebarPanel(id="sidebar", width = 5,
                                          span(textOutput("selected_country"), style="font-size: 24px; font-weight: bold;"),
-                                         ggiraphOutput("select_map", height = "30%")),
+                                         ggiraphOutput("select_map", height = "30%"),
+                                         radioButtons("select_RCP_country", "Select RCP Scenario:", choices = c("8.5", "6.0", "2.6")),
+                                         radioButtons("select_relationship_country", "Select abundance/production relationship:", choices = c("Convex", "Linear", "Concave")),
+                                         radioButtons("select_slope_country", "Select slope of abundance/production relationship:", choices = c("4", "8", "16", "32"))),
+                        
                             mainPanel(width = 7,
                                 plotOutput("country_change"),
                                 h5(style="text-align: justify;", "Climate change pollination dependence risk projected under RCP scenario 8.5 from the average of four climate models (GFDL, HadGEM2, IPSL, and MIROC5), for each selected country. Global standardised climate anomaly was projected for all areas of pollination-dependent cropland to 2050, using a 3 year rolling average. For each value of standardised climate anomaly, insect pollinator abundance was predicted according to a mixed effects linear model. Insect pollinator abundance at each cell at each time step was then adjusted to a percentage decline from cropland regions that have experienced no warming (i.e. standardised climate anomaly of 0). Pollination dependent production at each cell was then adjusted for the predicted loss in insect pollinator abundance, and then converted to a proportion of the total production at that cell.
@@ -79,6 +86,9 @@ ui <- shinyUI(fluidPage(
                                                      "Select a year:", min = 2016, 
                                                      max = 2047, value = 2016, 
                                                      animate = TRUE, sep = "", tick = 1),
+                                         radioButtons("select_RCP_global", "Select RCP Scenario:", choices = c("8.5", "6.0", "2.6")),
+                                         radioButtons("select_relationship_global", "Select abundance/production relationship:", choices = c("Convex", "Linear", "Concave")),
+                                         radioButtons("select_slope_global", "Select slope of abundance/production relationship:", choices = c("4", "8", "16", "32")),
                                          plotOutput("crop_prod_change"),
                                          h5(style="text-align: justify;", ("Predicted crop production risk for the 20 crops with the greatest pollination dependent production, for the years 2016 to x (where x = selected year). Pollination dependent production is calculated by multiplying total crop production for each crop by the pollination dependence ratios for that crop, as reported in Klein et al (2007) (i.e. 0.95, essential; 0.65, great; modest/great, 0.45; modest, 0.25; little, 0.05). For any Monfreda crop represented by multiple dependence ratios, we took the pollination dependence to be the mean of the ratios for that crop."))),
                             mainPanel(
@@ -93,6 +103,22 @@ ui <- shinyUI(fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    
+    # show and hide button for relationship of abundance/production
+    observeEvent(input$select_relationship_country, {
+        if(input$select_relationship_country == "Linear"){
+            shinyjs::hide(id = "select_slope_country")
+        }
+        else(shinyjs::show(id = "select_slope_country"))
+    })
+    
+    # show and hide button for relationship of abundance/production
+    observeEvent(input$select_relationship_global, {
+        if(input$select_relationship_global == "Linear"){
+            shinyjs::hide(id = "select_slope_global")
+        }
+        else(shinyjs::show(id = "select_slope_global"))
+    })
     
     # output the map for selecting countries
     output$select_map <- renderggiraph({
