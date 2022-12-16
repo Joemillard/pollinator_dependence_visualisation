@@ -8,6 +8,7 @@ library(ggiraph)
 library(forcats)
 library(data.table)
 library(shinyjs)
+library(bslib)
 
 # read in the grey background basemap
 map_fort <- readRDS("data/plot_base_map.rds") %>%
@@ -29,6 +30,9 @@ country_production <- readRDS("data/country_pollination_dependent_production.rds
 
 # Define UI for application with map, slider for year, and change in vulnerability
 ui <- shinyUI(fluidPage(
+    
+    # set bootstrap theme
+    theme = bs_theme(bootswatch = "spacelab"),
     
     shinyjs::useShinyjs(),
     
