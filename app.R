@@ -67,9 +67,9 @@ ui <- shinyUI(fluidPage(
                             sidebarPanel(id="sidebar", width = 5,
                                          span(textOutput("selected_country"), style="font-size: 24px; font-weight: bold;"),
                                          ggiraphOutput("select_map", height = "30%"),
-                                         radioButtons("select_RCP_country", "Select RCP Scenario:", choices = c("8.5", "6.0", "2.6")),
+                                         radioButtons("select_RCP_country", "Select RCP Scenario:", choiceValues = c("rcp85", "rcp60", "rcp26"), choiceNames = c("8.5", "6.0", "2.6")),
                                          radioButtons("select_relationship_country", "Select abundance/production relationship:", choices = c("Convex", "Linear", "Concave")),
-                                         radioButtons("select_slope_country", "Select slope of abundance/production relationship:", choices = c("4", "8", "16", "32"))),
+                                         radioButtons("select_slope_country", "Select slope of abundance/production relationship:", choices = c(4, 8, 16, 32))),
                         
                             mainPanel(width = 7,
                                 plotOutput("country_change"),
@@ -145,6 +145,9 @@ server <- function(input, output) {
     output$country_change <-  renderPlot({
         country_change %>%
             filter(SOVEREIGNT %in% gsub("\\.\\d+", "", input$select_map_selected)) %>% 
+            filter(RCP_scenario %in% input$select_RCP_country) %>%
+            filter(slope %in% input$select_slope_country) %>% 
+            filter(relationship %in% input$select_relationship_country) %>%
             ggplot() +
             geom_ribbon(aes(x = year, ymin = lower_conf, ymax = upp_conf), fill = "white", colour = "grey", alpha = 0.2, linetype = "dashed") +
             geom_line(aes(x = year, y = total, colour = total), size = 0.8) +
